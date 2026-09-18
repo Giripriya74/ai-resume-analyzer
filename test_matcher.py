@@ -1,7 +1,7 @@
 from utils.matcher import compare_skills
 
 
-# Resume skills
+
 resume_skills = [
     "Python",
     "Java",
@@ -11,7 +11,7 @@ resume_skills = [
 ]
 
 
-# Job description skills
+
 job_skills = [
     "Python",
     "AWS",
@@ -21,7 +21,7 @@ job_skills = [
 ]
 
 
-# Compare skills
+
 matching, missing, percentage = compare_skills(
     resume_skills,
     job_skills

@@ -404,11 +404,30 @@ if page == "🏠 Dashboard":
         """, unsafe_allow_html=True)
 
 
-# Upload files
-resume_file = st.file_uploader(
-    "Upload Resume (PDF)",
-    type=["pdf"]
-)
+
+# =========================================================
+# RESUME ANALYZER PAGE
+# =========================================================
+
+if page == "📄 Resume Analyzer":
+
+    st.markdown(
+        '<div class="main-title">📄 RESUME ANALYZER</div>',
+        unsafe_allow_html=True
+    )
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("### 📄 Upload Resume")
+
+        resume_file = st.file_uploader(
+            "Upload Resume (PDF)",
+            type=["pdf"]
+        )
+
+    with col2:
+        st.markdown("### 📋 Job Description")
 
         job_description = st.text_area(
             "Paste the job description",
@@ -416,12 +435,11 @@ resume_file = st.file_uploader(
             placeholder="Paste the job description here..."
         )
 
-        st.caption(f"Characters entered: {len(job_description)}")
+        st.caption(
+            f"Characters entered: {len(job_description)}"
+        )
 
-        st.markdown("</div>", unsafe_allow_html=True)
-
-# Analyze button
-if st.button("Analyze Resume"):
+    if st.button("🚀 Analyze Resume"):
 
         if resume_file is None or not job_description.strip():
 
@@ -433,171 +451,37 @@ if st.button("Analyze Resume"):
 
             try:
 
-                with st.spinner("🧠 AI engine is analyzing your resume..."):
+                with st.spinner(
+                    "🧠 AI engine is analyzing your resume..."
+                ):
 
-            # Extract text
-            resume_text = extract_text_from_pdf(resume_file)
-            job_text = job_description
+                    # Extract text
+                    resume_text = extract_text_from_pdf(resume_file)
+                    job_text = job_description
 
-            # Extract skills
-            resume_skills = extract_skills(resume_text)
-            job_skills = extract_skills(job_text)
+                    # Extract skills
+                    resume_skills = extract_skills(resume_text)
+                    job_skills = extract_skills(job_text)
 
-            # Compare skills
-            matching, missing, percentage = compare_skills(
-                resume_skills,
-                job_skills
-            )
+                    # Compare skills
+                    matching, missing, percentage = compare_skills(
+                        resume_skills,
+                        job_skills
+                    )
 
-                # Save results in session state
-                st.session_state["analysis_done"] = True
-                st.session_state["resume_name"] = resume_file.name
-                st.session_state["resume_skills"] = resume_skills
-                st.session_state["job_skills"] = job_skills
-                st.session_state["matching"] = matching
-                st.session_state["missing"] = missing
-                st.session_state["percentage"] = percentage
+                    # Save results
+                    st.session_state["analysis_done"] = True
+                    st.session_state["resume_name"] = resume_file.name
+                    st.session_state["resume_skills"] = resume_skills
+                    st.session_state["job_skills"] = job_skills
+                    st.session_state["matching"] = matching
+                    st.session_state["missing"] = missing
+                    st.session_state["percentage"] = percentage
 
-                st.markdown("""
-                <div class="success-box">
-                    ✨ AI ANALYSIS COMPLETE
-                </div>
-                """, unsafe_allow_html=True)
+                    st.success("✨ AI ANALYSIS COMPLETE")
 
             except Exception as error:
 
-                st.error(f"An error occurred during analysis: {error}")
-
-
-# =========================================================
-# DISPLAY ANALYSIS RESULTS
-# =========================================================
-
-if st.session_state.get("analysis_done", False):
-
-    if page in ["📄 Resume Analyzer", "📊 Analytics"]:
-
-        resume_skills = st.session_state["resume_skills"]
-        job_skills = st.session_state["job_skills"]
-        matching = st.session_state["matching"]
-        missing = st.session_state["missing"]
-        percentage = st.session_state["percentage"]
-        resume_name = st.session_state["resume_name"]
-
-        st.markdown("---")
-
-        st.markdown(
-            '<div class="section-title">📊 Analysis Overview</div>',
-            unsafe_allow_html=True
-        )
-
-        col1, col2, col3, col4 = st.columns(4)
-
-        with col1:
-            st.markdown(f"""
-            <div class="metric-card">
-                <div class="metric-label">🎯 Match Percentage</div>
-                <div class="metric-value">{percentage:.1f}%</div>
-            </div>
-            """, unsafe_allow_html=True)
-
-        with col2:
-            st.markdown(f"""
-            <div class="metric-card">
-                <div class="metric-label">✅ Matching Skills</div>
-                <div class="metric-value">{len(matching)}</div>
-            </div>
-            """, unsafe_allow_html=True)
-
-        with col3:
-            st.markdown(f"""
-            <div class="metric-card">
-                <div class="metric-label">❌ Missing Skills</div>
-                <div class="metric-value">{len(missing)}</div>
-            </div>
-            """, unsafe_allow_html=True)
-
-        with col4:
-            st.markdown(f"""
-            <div class="metric-card">
-                <div class="metric-label">🧠 Total Job Skills</div>
-                <div class="metric-value">{len(job_skills)}</div>
-            </div>
-            """, unsafe_allow_html=True)
-
-        score_col, summary_col = st.columns([1, 1])
-
-        with score_col:
-            create_circular_score(percentage)
-
-        with summary_col:
-
-            st.markdown("""
-            <div class="glass-card">
-                <div class="card-title">📝 Analysis Summary</div>
-            """, unsafe_allow_html=True)
-
-            st.write(f"**Resume:** {resume_name}")
-            st.write(f"**Resume skills detected:** {len(resume_skills)}")
-            st.write(f"**Job skills detected:** {len(job_skills)}")
-            st.write(f"**Matching skills:** {len(matching)}")
-            st.write(f"**Missing skills:** {len(missing)}")
-
-            st.progress(
-                min(max(float(percentage) / 100, 0.0), 1.0),
-                text="Resume compatibility"
-            )
-
-            st.markdown("</div>", unsafe_allow_html=True)
-
-        # Skills section
-        st.markdown(
-            '<div class="section-title">✅ Matching Skills</div>',
-            unsafe_allow_html=True
-        )
-        display_skill_tags(matching)
-
-        st.markdown(
-            '<div class="section-title">❌ Missing Skills</div>',
-            unsafe_allow_html=True
-        )
-        display_skill_tags(missing)
-
-        # Comparison table
-        st.markdown(
-            '<div class="section-title">📋 Skill Comparison Table</div>',
-            unsafe_allow_html=True
-        )
-
-        all_skills = sorted(set(resume_skills).union(set(job_skills)))
-
-        table_data = []
-
-        for skill in all_skills:
-
-            in_resume = skill in resume_skills
-            in_job = skill in job_skills
-
-            if in_resume and in_job:
-                status = "✅ Matching"
-            elif in_job and not in_resume:
-                status = "❌ Missing"
-            else:
-                status = "📄 Resume Only"
-
-            table_data.append({
-                "Skill": skill,
-                "In Resume": "Yes" if in_resume else "No",
-                "In Job Description": "Yes" if in_job else "No",
-                "Status": status
-            })
-
-        if table_data:
-            table_df = pd.DataFrame(table_data)
-            st.dataframe(
-                table_df,
-                use_container_width=True,
-                hide_index=True
-            )
-        else:
-            st.write("No missing skills!")
+                st.error(
+                    f"An error occurred during analysis: {error}"
+                )

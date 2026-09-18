@@ -5,7 +5,7 @@ from utils.skill_extractor import extract_skills
 from utils.matcher import compare_skills
 
 
-# Page configuration
+
 st.set_page_config(
     page_title="AI Resume Analyzer",
     page_icon="📄",

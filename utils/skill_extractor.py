@@ -1,17 +1,19 @@
 import re
 
-
-# List of technical skills
 SKILLS = [
     "Python",
     "Java",
+    "JavaScript",
     "SQL",
     "MySQL",
     "HTML",
     "CSS",
     "AWS",
+    "Amazon Web Services",
     "EC2",
-    "Amazon EBS",
+    "S3",
+    "VPC",
+    "EBS",
     "Linux",
     "Docker",
     "Kubernetes",
@@ -19,41 +21,44 @@ SKILLS = [
     "GitHub",
     "Jenkins",
     "Terraform",
+    "Ansible",
+    "CI/CD",
+    "DevOps",
     "PySpark",
     "Apache Spark",
     "Pandas",
     "Matplotlib",
-    "Data Engineering",
-    "Data Analysis",
     "Machine Learning",
-    "Deep Learning",
     "Artificial Intelligence",
     "Generative AI",
-    "Agentic AI",
     "LLMs",
     "RAG",
-    "Semantic Search",
     "REST APIs",
-    "SDLC",
-    "DBMS",
-    "Data Structures",
-    "OOP",
     "Streamlit",
-    "MCP"
+    "Networking",
+    "Troubleshooting",
+    "Technical Support",
+    "Cloud Computing",
+    "Data Analysis",
+    "Data Engineering",
+    "DBMS",
+    "OOP",
+    "SDLC"
 ]
 
 
 def extract_skills(text):
     """
-    Extract technical skills from text.
+    Extract skills from the given text.
     """
+
+    if not text:
+        return []
 
     found_skills = []
 
     for skill in SKILLS:
-
-        # Search for skills without case sensitivity
-        pattern = r"\b" + re.escape(skill) + r"\b"
+        pattern = r"(?<!\w)" + re.escape(skill) + r"(?!\w)"
 
         if re.search(pattern, text, re.IGNORECASE):
             found_skills.append(skill)

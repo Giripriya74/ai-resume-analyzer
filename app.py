@@ -416,6 +416,11 @@ if page == "📄 Resume Analyzer":
         unsafe_allow_html=True
     )
 
+    st.markdown(
+        '<div class="subtitle">Upload your resume and compare it with a job description</div>',
+        unsafe_allow_html=True
+    )
+
     col1, col2 = st.columns(2)
 
     with col1:
@@ -423,7 +428,8 @@ if page == "📄 Resume Analyzer":
 
         resume_file = st.file_uploader(
             "Upload Resume (PDF)",
-            type=["pdf"]
+            type=["pdf"],
+            key="resume_uploader"
         )
 
     with col2:
@@ -432,14 +438,15 @@ if page == "📄 Resume Analyzer":
         job_description = st.text_area(
             "Paste the job description",
             height=250,
-            placeholder="Paste the job description here..."
+            placeholder="Paste the job description here...",
+            key="job_description_input"
         )
 
         st.caption(
             f"Characters entered: {len(job_description)}"
         )
 
-    if st.button("🚀 Analyze Resume"):
+    if st.button("🚀 Analyze Resume", key="analyze_button"):
 
         if resume_file is None or not job_description.strip():
 
@@ -455,13 +462,12 @@ if page == "📄 Resume Analyzer":
                     "🧠 AI engine is analyzing your resume..."
                 ):
 
-                    # Extract text
+                    # Extract resume text
                     resume_text = extract_text_from_pdf(resume_file)
-                    job_text = job_description
 
                     # Extract skills
                     resume_skills = extract_skills(resume_text)
-                    job_skills = extract_skills(job_text)
+                    job_skills = extract_skills(job_description)
 
                     # Compare skills
                     matching, missing, percentage = compare_skills(
@@ -478,10 +484,239 @@ if page == "📄 Resume Analyzer":
                     st.session_state["missing"] = missing
                     st.session_state["percentage"] = percentage
 
-                    st.success("✨ AI ANALYSIS COMPLETE")
+                    st.success("✅ Analysis completed successfully!")
+
+                    st.info(
+                        "Open the 📊 Analytics page to view your results."
+                    )
 
             except Exception as error:
 
                 st.error(
                     f"An error occurred during analysis: {error}"
                 )
+
+
+# =========================================================
+# ANALYTICS PAGE
+# =========================================================
+
+if page == "📊 Analytics":
+
+    st.markdown(
+        '<div class="main-title">📊 ANALYTICS DASHBOARD</div>',
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        '<div class="subtitle">Detailed resume analysis results</div>',
+        unsafe_allow_html=True
+    )
+
+    if not st.session_state.get("analysis_done", False):
+
+        st.info(
+            "No analysis results available. "
+            "Please analyze a resume first from the Resume Analyzer page."
+        )
+
+    else:
+
+        # Get saved results
+        resume_name = st.session_state["resume_name"]
+        resume_skills = st.session_state["resume_skills"]
+        job_skills = st.session_state["job_skills"]
+        matching = st.session_state["matching"]
+        missing = st.session_state["missing"]
+        percentage = st.session_state["percentage"]
+
+        st.markdown(
+            '<div class="section-title">📊 Analysis Overview</div>',
+            unsafe_allow_html=True
+        )
+
+        # Metric cards
+        col1, col2, col3, col4 = st.columns(4)
+
+        with col1:
+            st.metric(
+                "🎯 Match Percentage",
+                f"{float(percentage):.1f}%"
+            )
+
+        with col2:
+            st.metric(
+                "✅ Matching Skills",
+                len(matching)
+            )
+
+        with col3:
+            st.metric(
+                "❌ Missing Skills",
+                len(missing)
+            )
+
+        with col4:
+            st.metric(
+                "🧠 Total Job Skills",
+                len(job_skills)
+            )
+
+        st.markdown("---")
+
+        # Score and summary
+        score_col, summary_col = st.columns(2)
+
+        with score_col:
+
+            st.markdown(
+                '<div class="section-title">🎯 Resume Match Score</div>',
+                unsafe_allow_html=True
+            )
+
+            create_circular_score(percentage)
+
+        with summary_col:
+
+            st.markdown(
+                '<div class="section-title">📝 Analysis Summary</div>',
+                unsafe_allow_html=True
+            )
+
+            st.write(f"**Resume:** {resume_name}")
+            st.write(f"**Resume skills detected:** {len(resume_skills)}")
+            st.write(f"**Job skills detected:** {len(job_skills)}")
+            st.write(f"**Matching skills:** {len(matching)}")
+            st.write(f"**Missing skills:** {len(missing)}")
+
+            st.progress(
+                min(max(float(percentage) / 100, 0.0), 1.0)
+            )
+
+        st.markdown("---")
+
+        # Matching skills
+        st.markdown(
+            '<div class="section-title">✅ Matching Skills</div>',
+            unsafe_allow_html=True
+        )
+
+        display_skill_tags(matching)
+
+        # Missing skills
+        st.markdown(
+            '<div class="section-title">❌ Missing Skills</div>',
+            unsafe_allow_html=True
+        )
+
+        display_skill_tags(missing)
+
+        st.markdown("---")
+
+        # Comparison table
+        st.markdown(
+            '<div class="section-title">📋 Skill Comparison Table</div>',
+            unsafe_allow_html=True
+        )
+
+        all_skills = sorted(
+            set(resume_skills).union(set(job_skills))
+        )
+
+        table_data = []
+
+        for skill in all_skills:
+
+            in_resume = skill in resume_skills
+            in_job = skill in job_skills
+
+            if in_resume and in_job:
+                status = "✅ Matching"
+
+            elif in_job and not in_resume:
+                status = "❌ Missing"
+
+            else:
+                status = "📄 Resume Only"
+
+            table_data.append({
+                "Skill": skill,
+                "In Resume": "Yes" if in_resume else "No",
+                "In Job Description": "Yes" if in_job else "No",
+                "Status": status
+            })
+
+        if table_data:
+
+            table_df = pd.DataFrame(table_data)
+
+            st.dataframe(
+                table_df,
+                use_container_width=True,
+                hide_index=True
+            )
+
+        else:
+
+            st.info("No skills were detected.")
+
+        # Download report
+        st.markdown("---")
+
+        report = create_report(
+            resume_name,
+            percentage,
+            resume_skills,
+            job_skills,
+            matching,
+            missing
+        )
+
+        st.download_button(
+            label="📥 Download Analysis Report",
+            data=report,
+            file_name="resume_analysis_report.txt",
+            mime="text/plain"
+        )
+
+
+# =========================================================
+# ABOUT PROJECT PAGE
+# =========================================================
+
+if page == "ℹ️ About Project":
+
+    st.markdown(
+        '<div class="main-title">ℹ️ ABOUT PROJECT</div>',
+        unsafe_allow_html=True
+    )
+
+    st.markdown("""
+    <div class="glass-card">
+
+    ### 🤖 AI Resume Analyzer
+
+    This project analyzes a resume and compares its skills
+    with the skills mentioned in a job description.
+
+    ### 🚀 Main Features
+
+    - Upload a resume in PDF format
+    - Extract resume text
+    - Detect technical skills
+    - Compare resume skills with job requirements
+    - Display matching skills
+    - Display missing skills
+    - Calculate resume match percentage
+    - Download an analysis report
+
+   
+
+    - Python
+    - Streamlit
+    - Pandas
+    - PDF Text Extraction
+    - Git and GitHub
+
+    </div>
+    """, unsafe_allow_html=True)

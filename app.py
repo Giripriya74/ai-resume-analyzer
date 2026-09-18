@@ -20,7 +20,7 @@ st.write(
 )
 
 
-# Upload files
+
 resume_file = st.file_uploader(
     "Upload Resume (PDF)",
     type=["pdf"]
@@ -34,7 +34,7 @@ job_description = st.text_area(
 
 
 
-# Analyze button
+
 if st.button("Analyze Resume"):
 
     if resume_file is None or not job_description.strip():
@@ -45,15 +45,15 @@ if st.button("Analyze Resume"):
 
         with st.spinner("Analyzing documents..."):
 
-            # Extract text
+            
             resume_text = extract_text_from_pdf(resume_file)
             job_text = job_description
 
-            # Extract skills
+           
             resume_skills = extract_skills(resume_text)
             job_skills = extract_skills(job_text)
 
-            # Compare skills
+           
             matching, missing, percentage = compare_skills(
                 resume_skills,
                 job_skills

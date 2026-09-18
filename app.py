@@ -26,16 +26,18 @@ resume_file = st.file_uploader(
     type=["pdf"]
 )
 
-job_file = st.file_uploader(
-    "Upload Job Description (PDF)",
-    type=["pdf"]
+job_description = st.text_area(
+    "Enter Job Description",
+    height=500,
+    placeholder="Paste the job description here..."
 )
+
 
 
 # Analyze button
 if st.button("Analyze Resume"):
 
-    if resume_file is None or job_file is None:
+    if resume_file is None or not job_description.strip():
 
         st.warning("Please upload both files.")
 
@@ -45,7 +47,7 @@ if st.button("Analyze Resume"):
 
             # Extract text
             resume_text = extract_text_from_pdf(resume_file)
-            job_text = extract_text_from_pdf(job_file)
+            job_text = job_description
 
             # Extract skills
             resume_skills = extract_skills(resume_text)
